@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 
 from scipy.sparse import coo_matrix
 
-from models.unet import UNET
+from pic2sgf.models.unet import UNET
 
 class VertexDetector():
     def __init__(self):

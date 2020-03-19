@@ -1,0 +1,1 @@
+from pic2sgf.pic2array import Pic2Array

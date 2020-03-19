@@ -1,4 +1,4 @@
-from models.cnn import CNN
+from pic2sgf.models.cnn import CNN
 from torchvision import transforms
 
 class BoardInterpreter():
