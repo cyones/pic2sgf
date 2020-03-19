@@ -1,3 +1,4 @@
+from os import path
 from torchvision import transforms
 import numpy as np
 from sklearn.cluster import KMeans
@@ -6,10 +7,12 @@ from scipy.sparse import coo_matrix
 
 from pic2sgf.models.unet import UNET
 
+params_path = path.join(path.dirname(__file__), '../models/parameters/unet.pmt')
+
 class VertexDetector():
     def __init__(self):
         self.unet = UNET(prelayers=2, unet_levels=4)
-        self.unet.load("models/parameters/unet.pmt")
+        self.unet.load(params_path)
         self.unet.eval()
 
         self.to_tensor = transforms.ToTensor()
