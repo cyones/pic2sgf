@@ -1,4 +1,4 @@
-from pic2sgf.modules import VertexDetector, BoardExtractor, BoardInterpreter
+from .modules import VertexDetector, BoardExtractor, BoardInterpreter
 
 class Pic2Array():
     def __init__(self, board_size):
