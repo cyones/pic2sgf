@@ -9,9 +9,9 @@ class Pic2Array():
 
 
     def __call__(self, image):
-        vertexs, _ = self.vertex_detector(image)
+        vertexs = self.vertex_detector(image)
         board_image = self.board_extractor(image, vertexs)
-        board_configuration, is_ok = self.board_interpreter(board_image)
-        return board_configuration, is_ok, board_image
+        board_configuration = self.board_interpreter(board_image)
+        return board_configuration, board_image
 
         
