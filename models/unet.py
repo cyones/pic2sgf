@@ -2,6 +2,20 @@ import torch as tr
 from torch import nn
 from torchvision import transforms
 
+class resnet_block(nn.Module):
+    def __init__(self, dims):
+        super(resnet_block, self).__init__()
+        self.conv_path = nn.Sequential(nn.ELU(),
+                                       nn.BatchNorm2d(dims),
+                                       nn.Conv2d(dims, dims, kernel_size=[3,3], padding=[1,1]),
+                                       nn.ELU(),
+                                       nn.BatchNorm2d(dims),
+                                       nn.Conv2d(dims, dims, kernel_size=[3,3], padding=[1,1]))
+        
+    def forward(self, x):
+        return x + self.conv_path(x)
+    
+
 class UNET(nn.Module):
     def __init__(self, prelayers, unet_levels):
         super(UNET, self).__init__()
@@ -12,16 +26,22 @@ class UNET(nn.Module):
         self.in_cnn = nn.ModuleList()
         self.out_cnn = nn.ModuleList()
         
+        self.pre_cnn.append(nn.Conv2d(3, 8, kernel_size=[3,3], padding=[1,1]))
         for i in range(prelayers):
-            self.pre_cnn.append(nn.Sequential(conv_block(3 if i == 0 else 8, 8), nn.MaxPool2d(2)))
+            self.pre_cnn.append(nn.Sequential(resnet_block(8), nn.MaxPool2d(2)))
 
         for i in range(unet_levels):
-            self.in_cnn.append(conv_block(8, 8))
-        self.bottom_cnn = conv_block(8, 8)
+            self.in_cnn.append(resnet_block(8))
+
+        self.bottom_cnn = resnet_block(8)
 
         for i in range(unet_levels):
-            self.out_cnn.append(conv_block(16, 8))
-        self.last_cnn = nn.Sequential(nn.Conv2d(8, 1, kernel_size=[3,3], padding=[1,1]),
+            self.out_cnn.append(nn.Sequential(resnet_block(16),
+                                              nn.Conv2d(16, 8, kernel_size=1)))
+            
+        self.last_cnn = nn.Sequential(nn.ELU(),
+                                      nn.BatchNorm2d(8),
+                                      nn.Conv2d(8, 1, kernel_size=[3,3], padding=[1,1]),
                                       nn.Sigmoid())
 
     def forward(self, x):
@@ -43,10 +63,3 @@ class UNET(nn.Module):
 
     def save(self, fname):
         tr.save(self.state_dict(), fname)
-
-
-def conv_block(in_dim, out_dim):
-    return nn.Sequential(nn.Conv2d(in_dim, out_dim, kernel_size=[3,3], padding=[1,1]),
-                         nn.ELU(),
-                         nn.BatchNorm2d(out_dim))
-    
