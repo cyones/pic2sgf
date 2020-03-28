@@ -1,22 +1,20 @@
 from os import path
 import numpy as np
-from pic2sgf.models.cnn import CNN
-from torchvision import transforms
+from pic2sgf.models import Interpreter
+from torchvision.transforms import functional as ft
 
-params_path = path.join(path.dirname(__file__), '../models/parameters/cnn.pmt')
-
+params_path = path.join(path.dirname(__file__), '../models/parameters/interpreter.pmt')
 
 
 class BoardInterpreter():
     def __init__(self):
-        self.cnn = CNN()
+        self.cnn = Interpreter()
         self.cnn.load(params_path)
         self.cnn.eval()
-        self.to_tensor = transforms.ToTensor()
 
     def __call__(self, image):
-        x = self.to_tensor(image).unsqueeze(0)
+        x = ft.to_tensor(image).unsqueeze(0)
         board = self.cnn(x)
-        board = board.detach().numpy()
+        board = board.detach().permute(1,0).numpy()
         board = board.round().astype(int)
         return board

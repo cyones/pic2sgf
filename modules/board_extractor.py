@@ -3,10 +3,10 @@ from PIL import Image
 
 
 class BoardExtractor():
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.border = 1 / 9
+    def __init__(self, board_size):
+        self.width = board_size * (2**4)
+        self.height = board_size * (2**4)
+        self.border = 1 / board_size
 
     def __call__(self, img, vertexs):
         board = Image.new('RGB', (self.width, self.height))
