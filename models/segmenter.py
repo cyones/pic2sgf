@@ -30,13 +30,12 @@ class Segmenter(nn.Module):
         self.downscale = nn.MaxPool2d(2)
         self.upscale = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         
-        self.pre_cnn = nn.Sequential(nn.Conv2d(3, 8, kernel_size=[3,3], padding=[1,1]),
+        self.pre_cnn = nn.Sequential(nn.Conv2d(3, 8, kernel_size=3, padding=1),
                                      resnet_block(8), resnet_block(8), nn.MaxPool2d(2),
-                                     resnet_block(8), resnet_block(8), nn.MaxPool2d(2)
+                                     conv_block(8, 16), resnet_block(16), resnet_block(16), nn.MaxPool2d(2)
                                      )
 
         self.in_cnn = nn.ModuleList([
-                                     nn.Sequential(conv_block( 8, 16), resnet_block(16), resnet_block(16)),
                                      nn.Sequential(conv_block(16, 32), resnet_block(32), resnet_block(32)),
                                      nn.Sequential(conv_block(32, 64), resnet_block(64), resnet_block(64))
                                      ])
@@ -46,10 +45,9 @@ class Segmenter(nn.Module):
         self.out_cnn = nn.ModuleList([
                                       nn.Sequential(resnet_block(64), resnet_block(64), conv_block(64, 32)),
                                       nn.Sequential(resnet_block(32), resnet_block(32), conv_block(32, 16)),
-                                      nn.Sequential(resnet_block(16), resnet_block(16), conv_block(16,  8)),
         ])
             
-        self.last_cnn = nn.Sequential(conv_block(8, 3), nn.Sigmoid())
+        self.last_cnn = nn.Sequential(conv_block(16, 3), nn.Sigmoid())
 
     def forward(self, x):
         x = self.pre_cnn(x)
