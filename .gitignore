@@ -133,3 +133,4 @@ dmypy.json
 
 # train data
 train_data/
+*.hist
