@@ -8,7 +8,7 @@ class conv_block(nn.Module):
         super(conv_block, self).__init__()
         self.convs = nn.Sequential(nn.ELU(),
                                    nn.BatchNorm2d(in_dim),
-                                   nn.Conv2d(in_dim, out_dim, kernel_size=[3,3], padding=[1,1]))
+                                   nn.Conv2d(in_dim, out_dim, kernel_size=3, padding=1))
     def forward(self, x):
         return self.convs(x)
 
@@ -18,10 +18,10 @@ class resnet_block(nn.Module):
         super(resnet_block, self).__init__()
         self.conv_path = nn.Sequential(nn.ELU(),
                                        nn.BatchNorm2d(dims),
-                                       nn.Conv2d(dims, dims, kernel_size=[3,3], padding=[1,1]),
+                                       nn.Conv2d(dims, dims, kernel_size=3, padding=1),
                                        nn.ELU(),
                                        nn.BatchNorm2d(dims),
-                                       nn.Conv2d(dims, dims, kernel_size=[3,3], padding=[1,1]))
+                                       nn.Conv2d(dims, dims, kernel_size=3, padding=1))
         
     def forward(self, x):
         return x + self.conv_path(x)
@@ -31,15 +31,14 @@ class resnet_block(nn.Module):
 class Interpreter(nn.Module):
     def __init__(self):
         super(Interpreter, self).__init__()
-        self.conv_blocks = nn.Sequential(nn.Conv2d(3, 8, kernel_size=[3,3], padding=[1,1]),
-                                         resnet_block(8), resnet_block(8), nn.AvgPool2d(2),
-                                         conv_block(8, 16), resnet_block(16), resnet_block(16), nn.AvgPool2d(2),
-                                         conv_block(16, 32), resnet_block(32), resnet_block(32), nn.AvgPool2d(2),
-                                         conv_block(32, 64), resnet_block(64), resnet_block(64), nn.AvgPool2d(2),
-                                         resnet_block(64), resnet_block(64))
+        self.conv_blocks = nn.Sequential(nn.Conv2d(3, 8, kernel_size=3, padding=1),
+                                         resnet_block(8), nn.AvgPool2d(2),
+                                         resnet_block(8), nn.AvgPool2d(2),
+                                         resnet_block(8), nn.AvgPool2d(2),
+                                         resnet_block(8), nn.AvgPool2d(2),
+                                         resnet_block(8))
         
-        self.board_interpreter = nn.Sequential(nn.Conv2d(64, 1, kernel_size=[1,1]),
-                                               nn.Tanh())
+        self.board_interpreter = nn.Sequential(nn.Conv2d(8, 1, kernel_size=1), nn.Tanh())
 
     def forward(self, x):
         x = self.conv_blocks(x)
