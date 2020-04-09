@@ -1,8 +1,12 @@
 from .src import CornerDetector, BoardExtractor, BoardInterpreter, BoardSizer
+import torch
 IMG_SIZE = (512, 384)
 
+
 class Pic2Array():
-    def __init__(self):
+    def __init__(self, num_threads):
+        torch.set_num_threads(num_threads)
+
         self.corner_detector = CornerDetector()
         self.board_sizer = BoardSizer()
         self.board_extractor = {9 : BoardExtractor(9),
