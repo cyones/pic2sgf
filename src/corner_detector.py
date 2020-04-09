@@ -1,5 +1,6 @@
 from os import path
 import numpy as np
+import torch
 from torchvision.transforms import functional as ft
 from sklearn.cluster import KMeans
 
@@ -10,20 +11,25 @@ from pic2sgf.models import Segmenter
 params_path = path.join(path.dirname(__file__), '../models/parameters/segmenter.pmt')
 
 class CornerDetector():
-    def __init__(self):
+    def __init__(self, gpu=False):
         self.unet = Segmenter()
         self.unet.load(params_path)
         self.unet.eval()
-
+        if gpu: self.unet = self.unet.cuda()
+        self.gpu = gpu
         self.kmeans = KMeans(n_clusters=4,
                              n_init=5,
                              precompute_distances=True,
                              algorithm='elkan')
 
     def __call__(self, image):
-        x = ft.to_tensor(image).unsqueeze(0)
-        segmentation = self.unet(x)
-        segmentation = segmentation.detach().numpy().squeeze()[2]
+        tensor = ft.to_tensor(image).unsqueeze(0)
+        print(tensor.dtype)
+        if self.gpu: tensor = tensor.cuda()
+        from time import time; start = time()
+        segmentation = self.unet(tensor)
+        print(f"unet: {time() - start} s")
+        segmentation = segmentation.detach().cpu().numpy().squeeze()[2]
         
         segmentation[segmentation < 0.1] = 0.0
         segmentation = coo_matrix( segmentation )
@@ -31,7 +37,7 @@ class CornerDetector():
         w = segmentation.data
 
         km_model = self.kmeans.fit(x, sample_weight=w)
-        vertexs = km_model.cluster_centers_ * 4
+        vertexs = 4 * km_model.cluster_centers_
         vertexs = self.order_vertexs(vertexs, image.size)
         return vertexs
 
@@ -50,5 +56,16 @@ class CornerDetector():
 
         idxs[3] = np.linalg.norm(vc - np.array([0,h]), ord=2, axis=1).argmin()
         vc[idxs[3]] = np.array([float('inf'), float('inf')])
+        v = v[idxs]
 
-        return v[idxs]
+        last_prod = 0
+        for i in range(len(v)):
+            prev = v[(i-1)%4] - v[i]
+            post = v[(i+1)%4] - v[i]
+            cross_prod = np.cross(post, prev)
+            if cross_prod * last_prod < 0:
+                v[i], v[(i+1)%4] = v[(i+1)%4].copy(), v[i].copy()
+                i += 1
+            else:
+                last_prod = cross_prod
+        return v

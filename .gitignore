@@ -132,5 +132,5 @@ dmypy.json
 .vscode
 
 # train data
-train_data/
+train/
 *.hist
