@@ -24,11 +24,8 @@ class CornerDetector():
 
     def __call__(self, image):
         tensor = ft.to_tensor(image).unsqueeze(0)
-        print(tensor.dtype)
         if self.gpu: tensor = tensor.cuda()
-        from time import time; start = time()
         segmentation = self.unet(tensor)
-        print(f"unet: {time() - start} s")
         segmentation = segmentation.detach().cpu().numpy().squeeze()[2]
         
         segmentation[segmentation < 0.1] = 0.0
