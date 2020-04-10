@@ -11,7 +11,7 @@ class BoardSizer():
         self.cnn = Sizer()
         self.cnn.load(params_path)
         self.cnn.eval()
-        self.classes = [9, 19]
+        self.classes = [9, 13, 19]
 
     def __call__(self, image, corners):
         bbox = (corners[:,0].min(), corners[:,1].min(), corners[:,0].max(), corners[:,1].max()) 
