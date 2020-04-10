@@ -1,4 +1,5 @@
 from .src import CornerDetector, BoardExtractor, BoardInterpreter, BoardSizer
+from PIL import Image
 import torch
 IMG_SIZE = (512, 384)
 
@@ -18,6 +19,7 @@ class Pic2Array():
         corners = self.corner_detector(image)
         board_size = self.board_sizer(image, corners)
         board_image = self.board_extractor[board_size](image, corners)
+        board_image = board_image.transpose(Image.ROTATE_180)
         board_configuration = self.board_interpreter(board_image)
         return board_configuration, board_image
 
