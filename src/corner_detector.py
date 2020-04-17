@@ -27,15 +27,18 @@ class CornerDetector():
 
         segmentation[segmentation < 0.1] = 0.0
         ccomponent, ncomponent = ndimage.label(segmentation)
+        confidence = np.zeros((4))
         if ncomponent < 4: raise Exception(f"Missing {4 - ncomponent} corners.")
         vertexs = -np.ones((4, 2))
         for i in range(4):
-            vertexs[i] = np.argwhere(segmentation == segmentation.max())
+            max_prob = segmentation.max()
+            confidence[i] = max_prob
+            vertexs[i] = np.argwhere(segmentation == max_prob)
             cc_label = ccomponent[int(vertexs[i,0]), int(vertexs[i,1])]
             segmentation[ccomponent == cc_label] = 0.0
         vertexs = 4 * vertexs[:,[1,0]]
-        vertexs = self.order_vertexs(vertexs, image.size)
-        return vertexs 
+        idxs = self.order_vertexs(vertexs, image.size)
+        return vertexs[idxs], confidence[idxs] 
 
     def order_vertexs(self, v, img_size):
         w, h = img_size
@@ -52,16 +55,15 @@ class CornerDetector():
 
         idxs[3] = np.linalg.norm(vc - np.array([0,h]), ord=2, axis=1).argmin()
         vc[idxs[3]] = np.array([float('inf'), float('inf')])
-        v = v[idxs]
 
         last_prod = 0
         for i in range(len(v)):
-            prev = v[(i-1)%4] - v[i]
-            post = v[(i+1)%4] - v[i]
+            prev = v[idxs[(i-1)%4]] - v[idxs[i]]
+            post = v[idxs[(i+1)%4]] - v[idxs[i]]
             cross_prod = np.cross(post, prev)
             if cross_prod * last_prod < 0:
-                v[i], v[(i+1)%4] = v[(i+1)%4].copy(), v[i].copy()
+                idxs[i], idxs[(i+1)%4] = idxs[(i+1)%4].copy(), idxs[i].copy()
                 i += 1
             else:
                 last_prod = cross_prod
-        return v
+        return idxs

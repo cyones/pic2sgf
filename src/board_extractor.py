@@ -20,4 +20,4 @@ class BoardExtractor():
                               method=Image.PERSPECTIVE,
                               data = T.reshape(-1),
                               resample=Image.BILINEAR)
-        return board.transpose(Image.ROTATE_180)
+        return board.transpose(Image.ROTATE_180), T[2,0:2]
