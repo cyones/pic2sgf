@@ -3,47 +3,36 @@ from torch import nn
 from torchvision import transforms
 
 
-class conv_block(nn.Module):
-    def __init__(self, in_dim, out_dim):
-        super(conv_block, self).__init__()
-        self.convs = nn.Sequential(nn.ELU(),
-                                   nn.BatchNorm2d(in_dim),
-                                   nn.Conv2d(in_dim, out_dim, kernel_size=3, padding=1))
-    def forward(self, x):
-        return self.convs(x)
-
-
-class resnet_block(nn.Module):
+class iblock(nn.Module):
     def __init__(self, dims):
-        super(resnet_block, self).__init__()
-        self.conv_path = nn.Sequential(nn.ELU(),
-                                       nn.BatchNorm2d(dims),
+        super(iblock, self).__init__()
+        self.conv_path = nn.Sequential(nn.BatchNorm2d(dims), nn.ReLU(),
                                        nn.Conv2d(dims, dims, kernel_size=3, padding=1),
-                                       nn.ELU(),
-                                       nn.BatchNorm2d(dims),
+                                       nn.ReLU(), nn.BatchNorm2d(dims),
                                        nn.Conv2d(dims, dims, kernel_size=3, padding=1))
         
     def forward(self, x):
         return x + self.conv_path(x)
 
-    
-
 class Interpreter(nn.Module):
     def __init__(self):
         super(Interpreter, self).__init__()
-        self.conv_blocks = nn.Sequential(nn.Conv2d(3, 8, kernel_size=3, padding=1),
-                                         resnet_block(8), nn.AvgPool2d(2),
-                                         resnet_block(8), nn.AvgPool2d(2),
-                                         resnet_block(8), nn.AvgPool2d(2),
-                                         resnet_block(8), nn.AvgPool2d(2),
-                                         resnet_block(8))
-        
-        self.board_interpreter = nn.Sequential(nn.Conv2d(8, 1, kernel_size=1), nn.Tanh())
+        self.conv_blocks = nn.Sequential(nn.Conv2d(3, 8, kernel_size=2, stride=2), 
+                                         iblock(8), nn.ReLU(), nn.BatchNorm2d(8),
+                                         nn.Conv2d(8, 16, kernel_size=2, stride=2),
+                                         iblock(16), nn.ReLU(), nn.BatchNorm2d(16),
+                                         nn.Conv2d(16, 32, kernel_size=2, stride=2),
+                                         iblock(32), nn.ReLU(), nn.BatchNorm2d(32),
+                                         nn.Conv2d(32, 64, kernel_size=2, stride=2),
+                                         iblock(64), nn.ReLU(), nn.BatchNorm2d(64),
+                                         nn.Conv2d(64, 1, kernel_size=1))
+        self.activation = nn.Tanh()
 
     def forward(self, x):
         x = self.conv_blocks(x)
-        board = self.board_interpreter(x).squeeze()
-        return board
+        x = x.sum(dim=1)
+        x = self.activation(x)
+        return x
       
     def load(self, fname):
         self.load_state_dict(tr.load(fname, map_location=lambda storage, loc: storage))
