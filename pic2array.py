@@ -10,7 +10,8 @@ class Pic2Array():
 
         self.corner_detector = CornerDetector()
         self.board_sizer = BoardSizer()
-        self.board_extractor = {9 : BoardExtractor(9),
+        self.board_extractor = { 9: BoardExtractor(9),
+                                13: BoardExtractor(13),
                                 19: BoardExtractor(19)}
         self.board_interpreter = BoardInterpreter()
 
