@@ -14,7 +14,6 @@ class BoardInterpreter():
 
     def __call__(self, image):
         x = ft.to_tensor(image).unsqueeze(0)
-        board = self.cnn(x).squeeze()
-        board = board.detach().numpy()
-        board = board.round().astype(int)
+        board = self.cnn(x).detach().argmax(axis=1)
+        board = board.squeeze().numpy() - 1
         return board
