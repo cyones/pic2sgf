@@ -2,9 +2,8 @@ from os import path
 import numpy as np
 import torch
 from torchvision.transforms import functional as ft
-from sklearn.cluster import KMeans
 
-from scipy.sparse import coo_matrix
+from scipy import ndimage
 
 from pic2sgf.models import Segmenter
 
@@ -15,28 +14,28 @@ class CornerDetector():
         self.unet = Segmenter()
         self.unet.load(params_path)
         self.unet.eval()
-        if gpu: self.unet = self.unet.cuda()
+        if gpu: 
+            self.unet = self.unet.cuda()
         self.gpu = gpu
-        self.kmeans = KMeans(n_clusters=4,
-                             n_init=5,
-                             precompute_distances=True,
-                             algorithm='elkan')
 
     def __call__(self, image):
         tensor = ft.to_tensor(image).unsqueeze(0)
-        if self.gpu: tensor = tensor.cuda()
+        if self.gpu:
+            tensor = tensor.cuda()
         segmentation = self.unet(tensor)
         segmentation = segmentation.detach().cpu().numpy().squeeze()[2]
-        
-        segmentation[segmentation < 0.1] = 0.0
-        segmentation = coo_matrix( segmentation )
-        x = np.stack([segmentation.col, segmentation.row]).transpose()
-        w = segmentation.data
 
-        km_model = self.kmeans.fit(x, sample_weight=w)
-        vertexs = 4 * km_model.cluster_centers_
+        segmentation[segmentation < 0.1] = 0.0
+        ccomponent, ncomponent = ndimage.label(segmentation)
+        if ncomponent < 4: raise Exception(f"Missing {4 - ncomponent} corners.")
+        vertexs = -np.ones((4, 2))
+        for i in range(4):
+            vertexs[i] = np.argwhere(segmentation == segmentation.max())
+            cc_label = ccomponent[int(vertexs[i,0]), int(vertexs[i,1])]
+            segmentation[ccomponent == cc_label] = 0.0
+        vertexs = 4 * vertexs[:,[1,0]]
         vertexs = self.order_vertexs(vertexs, image.size)
-        return vertexs
+        return vertexs 
 
     def order_vertexs(self, v, img_size):
         w, h = img_size
