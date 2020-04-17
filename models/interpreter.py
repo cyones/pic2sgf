@@ -25,13 +25,10 @@ class Interpreter(nn.Module):
                                          iblock(32), nn.ReLU(), nn.BatchNorm2d(32),
                                          nn.Conv2d(32, 64, kernel_size=2, stride=2),
                                          iblock(64), nn.ReLU(), nn.BatchNorm2d(64),
-                                         nn.Conv2d(64, 1, kernel_size=1))
-        self.activation = nn.Tanh()
+                                         nn.Conv2d(64, 3, kernel_size=1))
 
     def forward(self, x):
         x = self.conv_blocks(x)
-        x = x.sum(dim=1)
-        x = self.activation(x)
         return x
       
     def load(self, fname):
