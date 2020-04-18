@@ -17,6 +17,6 @@ class BoardSizer():
         bbox = (corners[:,0].min(), corners[:,1].min(), corners[:,0].max(), corners[:,1].max()) 
         image = image.crop(bbox).resize((256, 192))
         x = ft.to_tensor(image).unsqueeze(0)
-        probabilities = self.cnn(x)
-        board_size = probabilities.detach().numpy().argmax()
+        probabilities = self.cnn(x).detach().numpy()
+        board_size = probabilities.argmax()
         return self.classes[board_size], probabilities
