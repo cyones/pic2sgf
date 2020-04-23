@@ -16,4 +16,5 @@ class BoardInterpreter():
         x = ft.to_tensor(image).unsqueeze(0)
         probabilities = self.cnn(x).detach().squeeze().numpy()
         configuration = probabilities.argmax(axis=0) - 1
+        probabilities = np.exp(probabilities.max(axis=0)) / np.exp(probabilities).sum(axis=0)
         return configuration, probabilities
