@@ -1,5 +1,6 @@
 from os import path
 import numpy as np
+from scipy import stats
 import torch
 from torchvision.transforms import functional as ft
 
@@ -23,9 +24,14 @@ class CornerDetector():
         if self.gpu:
             tensor = tensor.cuda()
         segmentation = self.unet(tensor)
-        segmentation = segmentation.detach().cpu().numpy().squeeze()[2]
-
+        segmentation = segmentation.detach().cpu().numpy().squeeze()
         segmentation[segmentation < 0.1] = 0.0
+
+        ccomponent, ncomponent = ndimage.label(segmentation[0])
+        greather_component = stats.mode(ccomponent[ccomponent>0], axis=None)[0]
+        segmentation = segmentation[2]
+        segmentation[ccomponent != greather_component] = 0.0
+        
         ccomponent, ncomponent = ndimage.label(segmentation)
         confidence = np.zeros((4))
         if ncomponent < 4: raise Exception(f"Missing {4 - ncomponent} corners.")
