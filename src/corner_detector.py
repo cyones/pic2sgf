@@ -3,10 +3,10 @@ import numpy as np
 from scipy import stats
 import torch
 from torchvision.transforms import functional as ft
-
 from scipy import ndimage
 
-from pic2sgf.models import Segmenter
+from .exceptions import NoBoardError, BoardTooFarError, MissingCornerError
+from ..models import Segmenter
 
 params_path = path.join(path.dirname(__file__), '../models/parameters/segmenter.pmt')
 
@@ -28,21 +28,32 @@ class CornerDetector():
         segmentation[segmentation < 0.1] = 0.0
 
         ccomponent, ncomponent = ndimage.label(segmentation[0])
-        greather_component = stats.mode(ccomponent[ccomponent>0], axis=None)[0]
+        if ncomponent < 1:
+            raise NoBoardError
+
+        greather_component, component_size = stats.mode(ccomponent[ccomponent>0], axis=None)
+        if component_size < 3072: 
+            raise BoardTooFarError()
+
         segmentation = segmentation[2]
         segmentation[ccomponent != greather_component] = 0.0
         
         ccomponent, ncomponent = ndimage.label(segmentation)
         confidence = np.zeros((4))
-        if ncomponent < 4: raise Exception(f"Missing {4 - ncomponent} corners.")
+        if ncomponent < 4:
+            raise MissingCornerError(ncomponent)
+
         vertexs = -np.ones((4, 2))
         for i in range(4):
             max_prob = segmentation.max()
             confidence[i] = max_prob
-            vertexs[i] = np.argwhere(segmentation == max_prob)
+            maxs = np.argwhere(segmentation == max_prob)
+            if maxs.ndim == 2: 
+                maxs = maxs[0]
+            vertexs[i] = maxs
             cc_label = ccomponent[int(vertexs[i,0]), int(vertexs[i,1])]
             segmentation[ccomponent == cc_label] = 0.0
-        vertexs = 4 * vertexs[:,[1,0]]
+        vertexs = 2 * vertexs[:,[1,0]]
         idxs = self.order_vertexs(vertexs, image.size)
         return vertexs[idxs], confidence[idxs] 
 
