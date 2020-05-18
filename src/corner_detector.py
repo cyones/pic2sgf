@@ -39,20 +39,22 @@ class CornerDetector():
         segmentation[ccomponent != greather_component] = 0.0
         
         ccomponent, ncomponent = ndimage.label(segmentation)
-        confidence = np.zeros((4))
         if ncomponent < 4:
             raise MissingCornerError(ncomponent)
 
+        confidence = np.zeros((4))
         vertexs = -np.ones((4, 2))
         for i in range(4):
-            max_prob = segmentation.max()
-            confidence[i] = max_prob
-            maxs = np.argwhere(segmentation == max_prob)
-            if maxs.ndim == 2: 
-                maxs = maxs[0]
-            vertexs[i] = maxs
-            cc_label = ccomponent[int(vertexs[i,0]), int(vertexs[i,1])]
-            segmentation[ccomponent == cc_label] = 0.0
+            max_probability = segmentation.max()
+            confidence[i] = max_probability
+            max_position = np.where(segmentation == max_probability)
+
+            mask = ccomponent[max_position[0][0], max_position[1][0]] == ccomponent
+            p = np.where(mask)
+            w = segmentation[mask]
+            w /= w.sum()
+            vertexs[i] = np.array([(p[0] * w).sum(), (p[1] * w).sum()])
+            segmentation[mask] = 0.0
         vertexs = 2 * vertexs[:,[1,0]]
         idxs = self.order_vertexs(vertexs, image.size)
         return vertexs[idxs], confidence[idxs] 
