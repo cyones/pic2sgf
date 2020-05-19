@@ -21,5 +21,5 @@ class BoardExtractor():
                               data = T.reshape(-1),
                               resample=Image.BILINEAR)
         tilt = T[2,0:2]
-        if np.abs(tilt.max()) > 0.01: raise TooClosedAngleError()
+        if np.abs(tilt.max()) > 0.001: raise TooClosedAngleError()
         return board.transpose(Image.ROTATE_180), T[2,0:2]
