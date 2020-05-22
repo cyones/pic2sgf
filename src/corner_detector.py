@@ -32,8 +32,10 @@ class CornerDetector():
             raise NoBoardError
 
         greather_component, component_size = stats.mode(ccomponent[ccomponent>0], axis=None)
+        if component_size < 100:
+            raise NoBoardError
         if component_size < 3072: 
-            raise BoardTooFarError()
+            raise BoardTooFarError
 
         segmentation = segmentation[2]
         segmentation[ccomponent != greather_component] = 0.0
