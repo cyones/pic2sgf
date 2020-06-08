@@ -8,8 +8,11 @@ class BoardTooFarError(Exception):
         return "The board is too far."
 
 class MissingCornerError(Exception):
-    def __str__(self, ncorners):
-        return f"There are {4-ncorners} missing corners on the picture."
+    def __init__(self, ncorners):
+        self.ncorners=ncorners
+
+    def __str__(self):
+        return f"There are {4-self.ncorners} missing corners on the picture."
 
 class TooClosedAngleError(Exception):
     def __str__(self):
