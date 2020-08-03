@@ -132,6 +132,6 @@ dmypy.json
 .vscode
 
 # train data
-train/
-test_images/
+*.jpg
+*.jpeg
 *.hist
