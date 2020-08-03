@@ -2,9 +2,10 @@ import numpy as np
 from PIL import Image
 from .exceptions import TooClosedAngleError
 
+
 class BoardExtractor():
-    def __init__(self, board_size):
-        self.size = board_size * 16
+    def __init__(self, output_img_size):
+        self.size = output_img_size
         B = np.array([[8, 8, 1],
                       [self.size-8, 8, 1],
                       [self.size-8, self.size-8, 1],
@@ -21,5 +22,5 @@ class BoardExtractor():
                               data = T.reshape(-1),
                               resample=Image.BILINEAR)
         tilt = T[2,0:2]
-        if np.abs(tilt.max()) > 0.001: raise TooClosedAngleError()
+        if np.abs(tilt.max()) > 0.005: raise TooClosedAngleError()
         return board.transpose(Image.ROTATE_180), T[2,0:2]
