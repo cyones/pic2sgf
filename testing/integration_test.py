@@ -1,6 +1,6 @@
 import os
 from PIL import Image
-from pic2array import Pic2Array
+from pic2sgf import Pic2Array
 from matplotlib import pyplot as plt
 from matplotlib.colors import Normalize
 
