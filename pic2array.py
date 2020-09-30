@@ -1,4 +1,4 @@
-from src import CornerDetector, BoardExtractor, BoardInterpreter, BoardSizer
+from .src import CornerDetector, BoardExtractor, BoardInterpreter, BoardSizer
 from PIL import Image
 from PIL.ImageOps import expand
 from time import time

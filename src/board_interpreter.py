@@ -1,6 +1,6 @@
 from os import path
 import numpy as np
-from models import Interpreter
+from ..models import Interpreter
 from torchvision.transforms import functional as ft
 
 params_path = path.join(path.dirname(__file__), '../models/parameters/interpreter.pmt')

@@ -1,10 +1,10 @@
 from os import path
 import numpy as np
-from models import Sizer
-from src.exceptions import CornerDetectionError
 from torchvision.transforms import functional as ft
 
-from src import BoardExtractor
+from . import BoardExtractor
+from .exceptions import CornerDetectionError
+from ..models import Sizer
 
 params_path = path.join(path.dirname(__file__), '../models/parameters/sizer.pmt')
 
