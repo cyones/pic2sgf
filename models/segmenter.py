@@ -11,38 +11,43 @@ def Pooling(in_dim, out_dim):
 class Segmenter(nn.Module):
     def __init__(self):
         super(Segmenter, self).__init__()
-        self.downscale = nn.ModuleList([Pooling(8, 16), Pooling(16, 32), Pooling(32, 64), Pooling(64, 96)])
+        self.downscale = nn.ModuleList([Pooling(10, 20), Pooling(20, 40), Pooling(40, 80), Pooling(80, 80)])
         self.upscale = nn.ModuleList([nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                                      nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                                       nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                                       nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                                       nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)])
         
-        self.pre_cnn = nn.Sequential(nn.Conv2d(3, 8, kernel_size=2, stride=2))
+        self.pre_cnn = nn.Sequential(
+            nn.Conv2d(3, 12, kernel_size=2, stride=2),
+            nn.BatchNorm2d(12), nn.GELU(),
+            nn.Conv2d(12, 10, kernel_size=1),
+            )
 
-        self.in_cnn = nn.ModuleList([nn.Sequential(iblock( 8), iblock( 8)),
-                                     nn.Sequential(iblock(16), iblock(16)),
-                                     nn.Sequential(iblock(32), iblock(32)),
-                                     nn.Sequential(iblock(64), iblock(64))
+        self.in_cnn = nn.ModuleList([nn.Sequential(iblock(10), iblock(10), iblock(10)),
+                                     nn.Sequential(iblock(20), iblock(20), iblock(20)),
+                                     nn.Sequential(iblock(40), iblock(40), iblock(40)),
+                                     nn.Sequential(iblock(80), iblock(80), iblock(80))
                                      ])
 
-        self.bottom = nn.Sequential(iblock(96), iblock(96),
-                                    nn.BatchNorm2d(96), nn.GELU(),
-                                    nn.Conv2d(96, 64, kernel_size=1))
+        self.bottom = nn.Sequential(iblock(80), iblock(80),
+                                    nn.BatchNorm2d(80), nn.GELU(),
+                                    nn.Conv2d(80, 80, kernel_size=1))
 
-        self.out_cnn = nn.ModuleList([nn.Sequential(iblock(64), iblock(64),
-                                                    nn.GELU(), nn.BatchNorm2d(64),
-                                                    nn.Conv2d(64, 32, kernel_size=1)),
-                                      nn.Sequential(iblock(32), iblock(32),
-                                                    nn.GELU(), nn.BatchNorm2d(32),
-                                                    nn.Conv2d(32, 16, kernel_size=1)),
-                                      nn.Sequential(iblock(16), iblock(16),
-                                                    nn.GELU(), nn.BatchNorm2d(16),
-                                                    nn.Conv2d(16, 8, kernel_size=1)),
-                                      nn.Sequential(iblock(8), iblock(8),
-                                                    nn.GELU(), nn.BatchNorm2d(8))
+        self.out_cnn = nn.ModuleList([nn.Sequential(iblock(80), iblock(80),
+                                                    nn.GELU(), nn.BatchNorm2d(80),
+                                                    nn.Conv2d(80, 40, kernel_size=1)),
+                                      nn.Sequential(iblock(40), iblock(40),
+                                                    nn.GELU(), nn.BatchNorm2d(40),
+                                                    nn.Conv2d(40, 20, kernel_size=1)),
+                                      nn.Sequential(iblock(20), iblock(20),
+                                                    nn.GELU(), nn.BatchNorm2d(20),
+                                                    nn.Conv2d(20, 10, kernel_size=1)),
+                                      nn.Sequential(iblock(10), iblock(10),
+                                                    nn.GELU(), nn.BatchNorm2d(10))
         ])
             
-        self.last_cnn = nn.Sequential(nn.Conv2d(8, 3, kernel_size=1), nn.Sigmoid())
+        self.last_cnn = nn.Sequential(nn.Conv2d(10, 3, kernel_size=1), nn.Sigmoid())
 
     def forward(self, x):
         x = self.pre_cnn(x)
