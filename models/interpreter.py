@@ -14,31 +14,42 @@ class Interpreter(nn.Module):
     def __init__(self):
         super(Interpreter, self).__init__()
         self.conv_blocks = nn.Sequential(
-            nn.Conv2d(3, 12, kernel_size=2, stride=2),
-            iblock(12), iblock(12),
-            Pooling(12, 24),
-            iblock(24), iblock(24),
-            Pooling(24, 48),
-            iblock(48), iblock(48),
+            nn.Conv2d(3, 32, kernel_size=3, stride=3),
+            nn.GELU(), nn.BatchNorm2d(32),
+            nn.Conv2d(32, 12, kernel_size=3, padding=1),
+            iblock(12), iblock(12), iblock(12), iblock(12),
+            Pooling(12, 24), 
+            iblock(24), iblock(24), iblock(24), iblock(24),
+            Pooling(24, 48), 
+            iblock(48), iblock(48), iblock(48), iblock(48),
             Pooling(48, 96),
-            iblock(96), iblock(96),
-            GlobalFeatures(96, 48),
-            nn.GELU(), nn.BatchNorm2d(96)
+            iblock(96), iblock(96), iblock(96), iblock(96),
+            nn.GELU(), nn.BatchNorm2d(96),
             )
-        self.displacement = nn.Conv2d(96, 2, kernel_size=1)
+        self.displacement = nn.Sequential(
+            nn.Conv2d(96, 24, kernel_size=1),
+            nn.GELU(), nn.BatchNorm2d(24),
+            nn.Conv2d(24, 2, kernel_size=1)
+        )
         self.position = nn.Sequential(
-            nn.Conv2d(96, 48, kernel_size=1),
-            nn.GELU(), nn.BatchNorm2d(48),
-            nn.Conv2d(48, 24, kernel_size=1),
+            nn.Conv2d(96, 24, kernel_size=1),
             nn.GELU(), nn.BatchNorm2d(24),
             nn.Conv2d(24, 3, kernel_size=1)
+        )
+        self.wrong = nn.Sequential(
+            nn.Conv2d(96, 24, kernel_size=1),
+            nn.GELU(), nn.BatchNorm2d(24),
+            nn.Conv2d(24, 1, kernel_size=1),
+            nn.AdaptiveMaxPool2d(1),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
         x = self.conv_blocks(x)
         position = self.position(x)
         displacement = self.displacement(x)
-        return position, displacement
+        wrong = self.wrong(x).view(-1, 1)
+        return position, displacement, wrong
       
     def load(self, fname):
         self.load_state_dict(tr.load(fname, map_location=lambda storage, loc: storage))
