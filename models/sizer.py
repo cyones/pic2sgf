@@ -6,18 +6,20 @@ from .iblock import iblock
 class Sizer(nn.Module):
     def __init__(self):
         super(Sizer, self).__init__()
-        self.conv_blocks = nn.Sequential(nn.Conv2d(1, 8, kernel_size=3, stride=3),
-                                         iblock(8), nn.GELU(), nn.BatchNorm2d(8),
-                                         nn.Conv2d(8, 16, kernel_size=2, stride=2),
-                                         iblock(16), nn.GELU(), nn.BatchNorm2d(16),
-                                         nn.Conv2d(16, 32, kernel_size=2, stride=2),
-                                         iblock(32), nn.GELU(), nn.BatchNorm2d(32),
-                                         nn.Conv2d(32, 64, kernel_size=2, stride=2),
-                                         iblock(64), nn.GELU(), nn.BatchNorm2d(64),
+        self.conv_blocks = nn.Sequential(nn.Conv2d(3, 10, kernel_size=2, stride=2), # 96
+                                         iblock(10), nn.GELU(), nn.BatchNorm2d(10),
+                                         nn.Conv2d(10, 20, kernel_size=2, stride=2), # 48
+                                         iblock(20), nn.GELU(), nn.BatchNorm2d(20),
+                                         nn.Conv2d(20, 40, kernel_size=2, stride=2), # 24
+                                         iblock(40), nn.GELU(), nn.BatchNorm2d(40),
+                                         nn.Conv2d(40, 80, kernel_size=2, stride=2), # 12
+                                         iblock(80), nn.GELU(), nn.BatchNorm2d(80),
+                                         nn.Conv2d(80, 80, kernel_size=2, stride=2), # 6
+                                         iblock(80), nn.GELU(), nn.BatchNorm2d(80),
                                          nn.AdaptiveAvgPool2d(1))
         
-        self.linear = nn.Sequential(nn.Linear(64, 16), nn.GELU(), nn.BatchNorm1d(16),
-                                    nn.Dropout(0.2), nn.Linear(16, 4), nn.Sigmoid())
+        self.linear = nn.Sequential(nn.Linear(80, 20), nn.GELU(), nn.BatchNorm1d(20),
+                                    nn.Dropout(0.25), nn.Linear(20, 4), nn.Sigmoid())
                                          
 
     def forward(self, x):
