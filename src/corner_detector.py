@@ -27,7 +27,7 @@ class CornerDetector():
         segmentation = segmentation.detach().cpu().numpy().squeeze()
 
         segmentation_board = segmentation[0]
-        segmentation_board[segmentation_board < 1e-2] = 0.0
+        segmentation_board[segmentation_board < 0.1] = 0.0
 
         ccomponent, ncomponent = ndimage.label(segmentation_board)
         if ncomponent < 1: raise NoBoardError()
