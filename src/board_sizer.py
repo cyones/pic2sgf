@@ -19,10 +19,9 @@ class BoardSizer():
 
     def __call__(self, image, corners):
         image, _ = self.board_extractor(image, corners)
-        x = ft.to_tensor(image).mean(0, keepdim=True).unsqueeze(0)
+        x = ft.to_tensor(image).unsqueeze(0)
 
         probabilities = self.cnn(x).squeeze()
-        probabilities[3] *= 1e-3
 
         class_idx = probabilities.detach().numpy().argmax()
         if class_idx == 3: raise CornerDetectionError()
