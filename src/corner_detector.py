@@ -5,8 +5,8 @@ import torch
 from torchvision.transforms import functional as ft
 from scipy import ndimage
 
-from .exceptions import NoBoardError, BoardTooFarError, MissingCornerError
-from ..models import Segmenter
+from src.exceptions import NoBoardError, BoardTooFarError, MissingCornerError
+from models import Segmenter
 
 params_path = path.join(path.dirname(__file__), '../models/parameters/segmenter.pmt')
 
