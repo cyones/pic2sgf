@@ -1,4 +1,4 @@
-from .src import CornerDetector, BoardExtractor, BoardInterpreter, BoardSizer
+from src import CornerDetector, BoardExtractor, BoardInterpreter, BoardSizer
 from PIL import Image
 from PIL.ImageOps import expand
 from time import time
@@ -12,9 +12,9 @@ class Pic2Array():
         tr.set_num_threads(num_threads)
         self.corner_detector = CornerDetector()
         self.board_sizer = BoardSizer()
-        self.board_extractor = { 9: BoardExtractor( 9 * 16),
-                                13: BoardExtractor(13 * 16),
-                                19: BoardExtractor(19 * 16)}
+        self.board_extractor = { 9: BoardExtractor( 9 * 24),
+                                13: BoardExtractor(13 * 24),
+                                19: BoardExtractor(19 * 24)}
         self.board_interpreter = BoardInterpreter()
 
     def resize(self, image, size):
